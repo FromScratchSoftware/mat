@@ -107,6 +107,7 @@ internal static class MatOperations
             AdvSimd.Store(p + 3 * bitjump, rv3);
         }
 
+        end += jump;
         for (; p < end; p++, q++)
             *p += *q;
     }
@@ -141,6 +142,7 @@ internal static class MatOperations
             Sse42.Store(p + 3 * bitjump, rv3);
         }
 
+        end += jump;
         for (; p < end; p++, q++)
             *p += *q;
     }
@@ -175,6 +177,7 @@ internal static class MatOperations
             Sse41.Store(p + 3 * bitjump, rv3);
         }
 
+        end += jump;
         for (; p < end; p++, q++)
             *p += *q;
     }
@@ -209,6 +212,7 @@ internal static class MatOperations
             Avx2.Store(p + 3 * bitjump, rv3);
         }
 
+        end += jump;
         for (; p < end; p++, q++)
             *p += *q;
     }
@@ -243,6 +247,7 @@ internal static class MatOperations
             Sse3.Store(p + 3 * bitjump, rv3);
         }
 
+        end += jump;
         for (; p < end; p++, q++)
             *p += *q;
     }
@@ -268,6 +273,7 @@ internal static class MatOperations
             *(p + 7) += *(q + 7);
         }
 
+        end += jump;
         for (; p < end; p++, q++)
             *p += *q;
     }
