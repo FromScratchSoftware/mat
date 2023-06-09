@@ -7,7 +7,7 @@ namespace Algebric.Internal;
 
 internal static class MatAddOperations
 {
-    private const int splitThreshold = 128;
+    private const int splitThreshold = 64;
 
     internal static unsafe void Sum(float* p, float* q, int n, int m)
     {
@@ -43,14 +43,14 @@ internal static class MatAddOperations
         sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
 
-    internal static unsafe void sum(float* p, float* q, int n, int m)
+    private static unsafe void sum(float* p, float* q, int n, int m)
     {
         if (n * m < splitThreshold * splitThreshold)
             iterativeSum(p, q, n, m);
         else parallelSum(p, q, n, m);
     }
 
-    internal static unsafe void sum(
+    private static unsafe void sum(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -63,7 +63,7 @@ internal static class MatAddOperations
         else parallelSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
     
-    internal static unsafe void iterativeSum(float* p, float* q,int n, int m)
+    private static unsafe void iterativeSum(float* p, float* q,int n, int m)
     {
         if (AdvSimd.IsSupported)
             simdSum(p, q, n, m);
@@ -276,7 +276,7 @@ internal static class MatAddOperations
         } while (p < end);
     }
 
-    internal static unsafe void slowSum(
+    private static unsafe void slowSum(
         float* p, float* q,
         long n, long m
     )
@@ -308,7 +308,7 @@ internal static class MatAddOperations
         } while (p < end);
     }
 
-    internal static unsafe void iterativeSum(
+    private static unsafe void iterativeSum(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -637,15 +637,36 @@ internal static class MatAddOperations
         }
     }
 
-    internal static unsafe void parallelSum(
+    private static unsafe void parallelSum(
         float* p, float* q, 
         int n, int m
     )
     {
-        throw new NotImplementedException();
+        Parallel.For(0, 64, s =>
+        {
+            int i = s % 8;
+            int j = s / 8;
+            int subN = n / 8;
+            int subM = m / 8;
+
+            if (i == 7)
+                subN += n % 8;
+            
+            if (j == 7)
+                subM += m % 8;
+
+            int pi = i * subN;
+            int pj = j * subM;
+
+            iterativeSum(
+                p, q,
+                pi, pj, pi, pj,
+                subN, subM, n, m
+            );
+        });
     }
 
-    internal static unsafe void parallelSum(
+    private static unsafe void parallelSum(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -653,6 +674,29 @@ internal static class MatAddOperations
         int strP, int strQ
     )
     {
-        throw new NotImplementedException();
+        Parallel.For(0, 64, s =>
+        {
+            int i = s % 8;
+            int j = s / 8;
+            int subN = n / 8;
+            int subM = m / 8;
+
+            if (i == 7)
+                subN += n % 8;
+            
+            if (j == 7)
+                subM += m % 8;
+
+            int stpi = pi + i * subN;
+            int stpj = pj + j * subM;
+            int stqi = qi + i * subN;
+            int stqj = qj + j * subM;
+
+            iterativeSum(
+                p, q,
+                stpi, stpj, stqi, stqj, 
+                subN, subM, n, m
+            );
+        });
     }
 }
