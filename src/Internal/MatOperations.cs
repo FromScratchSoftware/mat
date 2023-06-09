@@ -27,7 +27,8 @@ internal static class MatOperations
         float* p, float* q, 
         int pi, int pj,
         int qi, int qj,
-        int n, int m
+        int n, int m,
+        int strP, int strQ
     )
     {
         if (p is null)
@@ -39,7 +40,7 @@ internal static class MatOperations
         if (n < 1 || m < 1)
             throw new InvalidOperationException("size of matriz may be bigger than 0");
         
-        sum(p, q, pi, pj, qi, qj, n, m);
+        sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
 
     internal static unsafe void sum(float* p, float* q, int n, int m)
@@ -53,18 +54,19 @@ internal static class MatOperations
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
-        int n, int m
+        int n, int m,
+        int strP, int strQ
     )
     {
         if (n * m < splitThreshold * splitThreshold)
-            iterativeSum(p, q, pi, pj, qi, qj, n, m);
-        else parallelSum(p, q, pi, pj, qi, qj, n, m);
+            iterativeSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else parallelSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
     
     internal static unsafe void iterativeSum(float* p, float* q,int n, int m)
     {
         if (AdvSimd.IsSupported)
-            smidSum(p, q, n, m);
+            strQidSum(p, q, n, m);
         else if (Sse42.IsSupported)
             sse42Sum(p, q, n, m);
         else if (Sse41.IsSupported)
@@ -77,7 +79,7 @@ internal static class MatOperations
             slowSum(p, q, n, m);
     }
 
-    private static unsafe void smidSum(float* p, float* q, int n, int m)
+    private static unsafe void strQidSum(float* p, float* q, int n, int m)
     {
         const long bitjump = 4;
         const long jump = 16;
@@ -272,6 +274,86 @@ internal static class MatOperations
             *p += *q;
     }
 
+    internal static unsafe void iterativeSum(
+        float* p, float* q,
+        int pi, int pj,
+        int qi, int qj,
+        int n, int m,
+        int strP, int strQ
+    )
+    {
+        if (AdvSimd.IsSupported)
+            strQidSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else if (Sse42.IsSupported)
+            sse42Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else if (Sse41.IsSupported)
+            sse41Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else if (Avx2.IsSupported)
+            avxSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else if (Sse3.IsSupported)
+            sse3Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else
+            slowSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+    }
+
+    private static unsafe void slowSum(
+        float* p, float* q,
+        int pi, int pj,
+        int qi, int qj,
+        int n, int m,
+        int strP, int strQ
+    )
+    {
+        p += pj * strP + pi;
+        q += qj * strQ + qj;
+
+
+        const long jump = 8;
+        long len = n * m - jump;
+        float* end = p + len;
+
+        for (; p < end; p += jump, q += jump)
+        {
+            *(p + 0) += *(q + 0);
+            *(p + 1) += *(q + 1);
+            *(p + 2) += *(q + 2);
+            *(p + 3) += *(q + 3);
+            *(p + 4) += *(q + 4);
+            *(p + 5) += *(q + 5);
+            *(p + 6) += *(q + 6);
+            *(p + 7) += *(q + 7);
+            p += jump;
+        }
+
+        for (; p < end; p++, q++)
+            *p += *q;
+    }
+
+    private static unsafe void sse3Sum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static unsafe void avxSum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static unsafe void sse41Sum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static unsafe void sse42Sum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static unsafe void strQidSum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
+    {
+        throw new NotImplementedException();
+    }
+
     internal static unsafe void parallelSum(
         float* p, float* q, 
         int n, int m
@@ -280,21 +362,12 @@ internal static class MatOperations
         throw new NotImplementedException();
     }
 
-    internal static unsafe void iterativeSum(
-        float* p, float* q,
-        int pi, int pj,
-        int qi, int qj,
-        int n, int m
-    )
-    {
-        throw new NotImplementedException();
-    }
-
     internal static unsafe void parallelSum(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
-        int n, int m
+        int n, int m,
+        int strP, int strQ
     )
     {
         throw new NotImplementedException();
