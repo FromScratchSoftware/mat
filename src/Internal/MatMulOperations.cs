@@ -5,11 +5,11 @@ using System.Runtime.Intrinsics.Arm;
 
 namespace Algebric.Internal;
 
-internal static class MatAddOperations
+internal static class MatMulOperations
 {
     private const int splitThreshold = 64;
 
-    internal static unsafe void Sum(
+    internal static unsafe void Mul(
         float* p, float* q, 
         int n, int m
     )
@@ -23,10 +23,10 @@ internal static class MatAddOperations
         if (n < 1 || m < 1)
             throw new InvalidOperationException("size of matriz may be bigger than 0");
         
-        sum(p, q, n, m);
+        mul(p, q, n, m);
     }
     
-    internal static unsafe void Sum(
+    internal static unsafe void Mul(
         float* p, float* q, 
         int pi, int pj,
         int qi, int qj,
@@ -43,20 +43,20 @@ internal static class MatAddOperations
         if (n < 1 || m < 1)
             throw new InvalidOperationException("size of matriz may be bigger than 0");
         
-        sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        mul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
 
-    private static unsafe void sum(
+    private static unsafe void mul(
         float* p, float* q,
         int n, int m
     )
     {
         if (n * m < splitThreshold * splitThreshold)
-            iterativeSum(p, q, n, m);
-        else parallelSum(p, q, n, m);
+            iterativeMul(p, q, n, m);
+        else parallelMul(p, q, n, m);
     }
 
-    private static unsafe void sum(
+    private static unsafe void mul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -65,30 +65,30 @@ internal static class MatAddOperations
     )
     {
         if (n * m < splitThreshold * splitThreshold)
-            iterativeSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
-        else parallelSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            iterativeMul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+        else parallelMul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
     
-    private static unsafe void iterativeSum(
+    private static unsafe void iterativeMul(
         float* p, float* q,
         int n, int m
     )
     {
         if (AdvSimd.IsSupported)
-            simdSum(p, q, n, m);
+            simdMul(p, q, n, m);
         else if (Sse42.IsSupported)
-            sse42Sum(p, q, n, m);
+            sse42Mul(p, q, n, m);
         else if (Sse41.IsSupported)
-            sse41Sum(p, q, n, m);
+            sse41Mul(p, q, n, m);
         else if (Avx2.IsSupported)
-            avxSum(p, q, n, m);
+            avxMul(p, q, n, m);
         else if (Sse3.IsSupported)
-            sse3Sum(p, q, n, m);
+            sse3Mul(p, q, n, m);
         else
-            slowSum(p, q, n, m);
+            slowMul(p, q, n, m);
     }
 
-    private static unsafe void simdSum(
+    private static unsafe void simdMul(
         float* p, float* q,
         int n, int m
     )
@@ -102,35 +102,35 @@ internal static class MatAddOperations
         {
             var pv0 = AdvSimd.LoadVector128(p);
             var qv0 = AdvSimd.LoadVector128(q);
-            var rv0 = AdvSimd.Add(pv0, qv0);
+            var rv0 = AdvSimd.Multiply(pv0, qv0);
             AdvSimd.Store(p, rv0);
 
             var pv1 = AdvSimd.LoadVector128(p + bitjump);
             var qv1 = AdvSimd.LoadVector128(q + bitjump);
-            var rv1 = AdvSimd.Add(pv1, qv1);
+            var rv1 = AdvSimd.Multiply(pv1, qv1);
             AdvSimd.Store(p + bitjump, rv1);
 
             var pv2 = AdvSimd.LoadVector128(p + 2 * bitjump);
             var qv2 = AdvSimd.LoadVector128(q + 2 * bitjump);
-            var rv2 = AdvSimd.Add(pv2, qv2);
+            var rv2 = AdvSimd.Multiply(pv2, qv2);
             AdvSimd.Store(p + 2 * bitjump, rv2);
 
             var pv3 = AdvSimd.LoadVector128(p + 3 * bitjump);
             var qv3 = AdvSimd.LoadVector128(q + 3 * bitjump);
-            var rv3 = AdvSimd.Add(pv3, qv3);
+            var rv3 = AdvSimd.Multiply(pv3, qv3);
             AdvSimd.Store(p + 3 * bitjump, rv3);
         } while (p < end);
 
         end += jump;
         do
         {
-            *p += *q;
+            *p *= *q;
             p++;
             q++;
         } while (p < end);
     }
 
-    private static unsafe void sse42Sum(
+    private static unsafe void sse42Mul(
         float* p, float* q,
         int n, int m
     )
@@ -144,35 +144,35 @@ internal static class MatAddOperations
         {
             var pv0 = Sse42.LoadVector128(p);
             var qv0 = Sse42.LoadVector128(q);
-            var rv0 = Sse42.Add(pv0, qv0);
+            var rv0 = Sse42.Multiply(pv0, qv0);
             Sse42.Store(p, rv0);
 
             var pv1 = Sse42.LoadVector128(p + bitjump);
             var qv1 = Sse42.LoadVector128(q + bitjump);
-            var rv1 = Sse42.Add(pv1, qv1);
+            var rv1 = Sse42.Multiply(pv1, qv1);
             Sse42.Store(p + bitjump, rv1);
 
             var pv2 = Sse42.LoadVector128(p + 2 * bitjump);
             var qv2 = Sse42.LoadVector128(q + 2 * bitjump);
-            var rv2 = Sse42.Add(pv2, qv2);
+            var rv2 = Sse42.Multiply(pv2, qv2);
             Sse42.Store(p + 2 * bitjump, rv2);
 
             var pv3 = Sse42.LoadVector128(p + 3 * bitjump);
             var qv3 = Sse42.LoadVector128(q + 3 * bitjump);
-            var rv3 = Sse42.Add(pv3, qv3);
+            var rv3 = Sse42.Multiply(pv3, qv3);
             Sse42.Store(p + 3 * bitjump, rv3);
         } while (p < end);
 
         end += jump;
         do
         {
-            *p += *q;
+            *p *= *q;
             p++;
             q++;
         } while (p < end);
     }
 
-    private static unsafe void sse41Sum(
+    private static unsafe void sse41Mul(
         float* p, float* q,
         int n, int m
     )
@@ -186,35 +186,35 @@ internal static class MatAddOperations
         {
             var pv0 = Sse41.LoadVector128(p);
             var qv0 = Sse41.LoadVector128(q);
-            var rv0 = Sse41.Add(pv0, qv0);
+            var rv0 = Sse41.Multiply(pv0, qv0);
             Sse41.Store(p, rv0);
 
             var pv1 = Sse41.LoadVector128(p + bitjump);
             var qv1 = Sse41.LoadVector128(q + bitjump);
-            var rv1 = Sse41.Add(pv1, qv1);
+            var rv1 = Sse41.Multiply(pv1, qv1);
             Sse41.Store(p + bitjump, rv1);
 
             var pv2 = Sse41.LoadVector128(p + 2 * bitjump);
             var qv2 = Sse41.LoadVector128(q + 2 * bitjump);
-            var rv2 = Sse41.Add(pv2, qv2);
+            var rv2 = Sse41.Multiply(pv2, qv2);
             Sse41.Store(p + 2 * bitjump, rv2);
 
             var pv3 = Sse41.LoadVector128(p + 3 * bitjump);
             var qv3 = Sse41.LoadVector128(q + 3 * bitjump);
-            var rv3 = Sse41.Add(pv3, qv3);
+            var rv3 = Sse41.Multiply(pv3, qv3);
             Sse41.Store(p + 3 * bitjump, rv3);
         } while (p < end);
 
         end += jump;
         do
         {
-            *p += *q;
+            *p *= *q;
             p++;
             q++;
         } while (p < end);
     }
 
-    private static unsafe void avxSum(
+    private static unsafe void avxMul(
         float* p, float* q,
         int n, int m
     )
@@ -228,35 +228,35 @@ internal static class MatAddOperations
         {
             var pv0 = Avx2.LoadVector128(p);
             var qv0 = Avx2.LoadVector128(q);
-            var rv0 = Avx2.Add(pv0, qv0);
+            var rv0 = Avx2.Multiply(pv0, qv0);
             Avx2.Store(p, rv0);
 
             var pv1 = Avx2.LoadVector128(p + bitjump);
             var qv1 = Avx2.LoadVector128(q + bitjump);
-            var rv1 = Avx2.Add(pv1, qv1);
+            var rv1 = Avx2.Multiply(pv1, qv1);
             Avx2.Store(p + bitjump, rv1);
 
             var pv2 = Avx2.LoadVector128(p + 2 * bitjump);
             var qv2 = Avx2.LoadVector128(q + 2 * bitjump);
-            var rv2 = Avx2.Add(pv2, qv2);
+            var rv2 = Avx2.Multiply(pv2, qv2);
             Avx2.Store(p + 2 * bitjump, rv2);
 
             var pv3 = Avx2.LoadVector128(p + 3 * bitjump);
             var qv3 = Avx2.LoadVector128(q + 3 * bitjump);
-            var rv3 = Avx2.Add(pv3, qv3);
+            var rv3 = Avx2.Multiply(pv3, qv3);
             Avx2.Store(p + 3 * bitjump, rv3);
         } while (p < end);
 
         end += jump;
         do
         {
-            *p += *q;
+            *p *= *q;
             p++;
             q++;
         } while (p < end);
     }
 
-    private static unsafe void sse3Sum(
+    private static unsafe void sse3Mul(
         float* p, float* q,
         int n, int m
     )
@@ -270,22 +270,22 @@ internal static class MatAddOperations
         {
             var pv0 = Sse3.LoadVector128(p);
             var qv0 = Sse3.LoadVector128(q);
-            var rv0 = Sse3.Add(pv0, qv0);
+            var rv0 = Sse3.Multiply(pv0, qv0);
             Sse3.Store(p, rv0);
 
             var pv1 = Sse3.LoadVector128(p + bitjump);
             var qv1 = Sse3.LoadVector128(q + bitjump);
-            var rv1 = Sse3.Add(pv1, qv1);
+            var rv1 = Sse3.Multiply(pv1, qv1);
             Sse3.Store(p + bitjump, rv1);
 
             var pv2 = Sse3.LoadVector128(p + 2 * bitjump);
             var qv2 = Sse3.LoadVector128(q + 2 * bitjump);
-            var rv2 = Sse3.Add(pv2, qv2);
+            var rv2 = Sse3.Multiply(pv2, qv2);
             Sse3.Store(p + 2 * bitjump, rv2);
 
             var pv3 = Sse3.LoadVector128(p + 3 * bitjump);
             var qv3 = Sse3.LoadVector128(q + 3 * bitjump);
-            var rv3 = Sse3.Add(pv3, qv3);
+            var rv3 = Sse3.Multiply(pv3, qv3);
             Sse3.Store(p + 3 * bitjump, rv3);
             p += jump;
             q += jump;
@@ -294,13 +294,13 @@ internal static class MatAddOperations
         end += jump;
         do
         {
-            *p += *q;
+            *p *= *q;
             p++;
             q++;
         } while (p < end);
     }
 
-    private static unsafe void slowSum(
+    private static unsafe void slowMul(
         float* p, float* q,
         long n, long m
     )
@@ -311,14 +311,14 @@ internal static class MatAddOperations
 
         do
         {
-            *(p + 0) += *(q + 0);
-            *(p + 1) += *(q + 1);
-            *(p + 2) += *(q + 2);
-            *(p + 3) += *(q + 3);
-            *(p + 4) += *(q + 4);
-            *(p + 5) += *(q + 5);
-            *(p + 6) += *(q + 6);
-            *(p + 7) += *(q + 7);
+            *(p + 0) *= *(q + 0);
+            *(p + 1) *= *(q + 1);
+            *(p + 2) *= *(q + 2);
+            *(p + 3) *= *(q + 3);
+            *(p + 4) *= *(q + 4);
+            *(p + 5) *= *(q + 5);
+            *(p + 6) *= *(q + 6);
+            *(p + 7) *= *(q + 7);
             p += jump;
             q += jump;
         } while (p < end);
@@ -326,13 +326,13 @@ internal static class MatAddOperations
         end += jump;
         do
         {
-            *p += *q;
+            *p *= *q;
             p++;
             q++;
         } while (p < end);
     }
 
-    private static unsafe void iterativeSum(
+    private static unsafe void iterativeMul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -341,20 +341,20 @@ internal static class MatAddOperations
     )
     {
         if (AdvSimd.IsSupported)
-            simdSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            simdMul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else if (Sse42.IsSupported)
-            sse42Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            sse42Mul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else if (Sse41.IsSupported)
-            sse41Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            sse41Mul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else if (Avx2.IsSupported)
-            avxSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            avxMul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else if (Sse3.IsSupported)
-            sse3Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            sse3Mul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else
-            slowSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            slowMul(p, q, pi, pj, qi, qj, n, m, strP, strQ);
     }
 
-    private static unsafe void slowSum(
+    private static unsafe void slowMul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -375,10 +375,10 @@ internal static class MatAddOperations
             lineEnd = p + n - jump;
             do
             {
-                *(p + 0) += *(q + 0);
-                *(p + 1) += *(q + 1);
-                *(p + 2) += *(q + 2);
-                *(p + 3) += *(q + 3);
+                *(p + 0) *= *(q + 0);
+                *(p + 1) *= *(q + 1);
+                *(p + 2) *= *(q + 2);
+                *(p + 3) *= *(q + 3);
                 p += jump;
                 q += jump;
             } while (p < lineEnd);
@@ -386,7 +386,7 @@ internal static class MatAddOperations
             lineEnd += jump;
             do
             {
-                *p += *q;
+                *p *= *q;
                 p++;
                 q++;
             } while (p < lineEnd);
@@ -396,7 +396,7 @@ internal static class MatAddOperations
         }
     }
 
-    private static unsafe void sse3Sum(
+    private static unsafe void sse3Mul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -420,22 +420,22 @@ internal static class MatAddOperations
             {
                 var vp0 = Sse3.LoadVector128(p);
                 var vq0 = Sse3.LoadVector128(q);
-                var vr0 = Sse3.Add(vp0, vq0);
+                var vr0 = Sse3.Multiply(vp0, vq0);
                 Sse3.Store(p, vr0);
                 
                 var vp1 = Sse3.LoadVector128(p + bitJump);
                 var vq1 = Sse3.LoadVector128(q + bitJump);
-                var vr1 = Sse3.Add(vp1, vq1);
+                var vr1 = Sse3.Multiply(vp1, vq1);
                 Sse3.Store(p + bitJump, vr1);
                 
                 var vp2 = Sse3.LoadVector128(p + 2 * bitJump);
                 var vq2 = Sse3.LoadVector128(q + 2 * bitJump);
-                var vr2 = Sse3.Add(vp2, vq2);
+                var vr2 = Sse3.Multiply(vp2, vq2);
                 Sse3.Store(p + 2 * bitJump, vr2);
                 
                 var vp3 = Sse3.LoadVector128(p + 3 * bitJump);
                 var vq3 = Sse3.LoadVector128(q + 3 * bitJump);
-                var vr3 = Sse3.Add(vp3, vq3);
+                var vr3 = Sse3.Multiply(vp3, vq3);
                 Sse3.Store(p + 3 * bitJump, vr3);
 
                 p += jump;
@@ -445,7 +445,7 @@ internal static class MatAddOperations
             lineEnd += jump;
             do
             {
-                *p += *q;
+                *p *= *q;
                 p++;
                 q++;
             } while (p < lineEnd);
@@ -455,7 +455,7 @@ internal static class MatAddOperations
         }
     }
 
-    private static unsafe void avxSum(
+    private static unsafe void avxMul(
         float* p, float* q, 
         int pi, int pj, 
         int qi, int qj, 
@@ -479,22 +479,22 @@ internal static class MatAddOperations
             {
                 var vp0 = Avx2.LoadVector128(p);
                 var vq0 = Avx2.LoadVector128(q);
-                var vr0 = Avx2.Add(vp0, vq0);
+                var vr0 = Avx2.Multiply(vp0, vq0);
                 Avx2.Store(p, vr0);
                 
                 var vp1 = Avx2.LoadVector128(p + bitJump);
                 var vq1 = Avx2.LoadVector128(q + bitJump);
-                var vr1 = Avx2.Add(vp1, vq1);
+                var vr1 = Avx2.Multiply(vp1, vq1);
                 Avx2.Store(p + bitJump, vr1);
                 
                 var vp2 = Avx2.LoadVector128(p + 2 * bitJump);
                 var vq2 = Avx2.LoadVector128(q + 2 * bitJump);
-                var vr2 = Avx2.Add(vp2, vq2);
+                var vr2 = Avx2.Multiply(vp2, vq2);
                 Avx2.Store(p + 2 * bitJump, vr2);
                 
                 var vp3 = Avx2.LoadVector128(p + 3 * bitJump);
                 var vq3 = Avx2.LoadVector128(q + 3 * bitJump);
-                var vr3 = Avx2.Add(vp3, vq3);
+                var vr3 = Avx2.Multiply(vp3, vq3);
                 Avx2.Store(p + 3 * bitJump, vr3);
 
                 p += jump;
@@ -504,7 +504,7 @@ internal static class MatAddOperations
             lineEnd += jump;
             do
             {
-                *p += *q;
+                *p *= *q;
                 p++;
                 q++;
             } while (p < lineEnd);
@@ -514,7 +514,7 @@ internal static class MatAddOperations
         }
     }
 
-    private static unsafe void sse41Sum(
+    private static unsafe void sse41Mul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -538,22 +538,22 @@ internal static class MatAddOperations
             {
                 var vp0 = Sse41.LoadVector128(p);
                 var vq0 = Sse41.LoadVector128(q);
-                var vr0 = Sse41.Add(vp0, vq0);
+                var vr0 = Sse41.Multiply(vp0, vq0);
                 Sse41.Store(p, vr0);
                 
                 var vp1 = Sse41.LoadVector128(p + bitJump);
                 var vq1 = Sse41.LoadVector128(q + bitJump);
-                var vr1 = Sse41.Add(vp1, vq1);
+                var vr1 = Sse41.Multiply(vp1, vq1);
                 Sse41.Store(p + bitJump, vr1);
                 
                 var vp2 = Sse41.LoadVector128(p + 2 * bitJump);
                 var vq2 = Sse41.LoadVector128(q + 2 * bitJump);
-                var vr2 = Sse41.Add(vp2, vq2);
+                var vr2 = Sse41.Multiply(vp2, vq2);
                 Sse41.Store(p + 2 * bitJump, vr2);
                 
                 var vp3 = Sse41.LoadVector128(p + 3 * bitJump);
                 var vq3 = Sse41.LoadVector128(q + 3 * bitJump);
-                var vr3 = Sse41.Add(vp3, vq3);
+                var vr3 = Sse41.Multiply(vp3, vq3);
                 Sse41.Store(p + 3 * bitJump, vr3);
 
                 p += jump;
@@ -563,7 +563,7 @@ internal static class MatAddOperations
             lineEnd += jump;
             do
             {
-                *p += *q;
+                *p *= *q;
                 p++;
                 q++;
             } while (p < lineEnd);
@@ -573,7 +573,7 @@ internal static class MatAddOperations
         }
     }
 
-    private static unsafe void sse42Sum(
+    private static unsafe void sse42Mul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -597,22 +597,22 @@ internal static class MatAddOperations
             {
                 var vp0 = Sse42.LoadVector128(p);
                 var vq0 = Sse42.LoadVector128(q);
-                var vr0 = Sse42.Add(vp0, vq0);
+                var vr0 = Sse42.Multiply(vp0, vq0);
                 Sse42.Store(p, vr0);
                 
                 var vp1 = Sse42.LoadVector128(p + bitJump);
                 var vq1 = Sse42.LoadVector128(q + bitJump);
-                var vr1 = Sse42.Add(vp1, vq1);
+                var vr1 = Sse42.Multiply(vp1, vq1);
                 Sse42.Store(p + bitJump, vr1);
                 
                 var vp2 = Sse42.LoadVector128(p + 2 * bitJump);
                 var vq2 = Sse42.LoadVector128(q + 2 * bitJump);
-                var vr2 = Sse42.Add(vp2, vq2);
+                var vr2 = Sse42.Multiply(vp2, vq2);
                 Sse42.Store(p + 2 * bitJump, vr2);
                 
                 var vp3 = Sse42.LoadVector128(p + 3 * bitJump);
                 var vq3 = Sse42.LoadVector128(q + 3 * bitJump);
-                var vr3 = Sse42.Add(vp3, vq3);
+                var vr3 = Sse42.Multiply(vp3, vq3);
                 Sse42.Store(p + 3 * bitJump, vr3);
 
                 p += jump;
@@ -622,7 +622,7 @@ internal static class MatAddOperations
             lineEnd += jump;
             do
             {
-                *p += *q;
+                *p *= *q;
                 p++;
                 q++;
             } while (p < lineEnd);
@@ -632,7 +632,7 @@ internal static class MatAddOperations
         }
     }
 
-    private static unsafe void simdSum(
+    private static unsafe void simdMul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -656,22 +656,22 @@ internal static class MatAddOperations
             {
                 var vp0 = AdvSimd.LoadVector128(p);
                 var vq0 = AdvSimd.LoadVector128(q);
-                var vr0 = AdvSimd.Add(vp0, vq0);
+                var vr0 = AdvSimd.Multiply(vp0, vq0);
                 AdvSimd.Store(p, vr0);
                 
                 var vp1 = AdvSimd.LoadVector128(p + bitJump);
                 var vq1 = AdvSimd.LoadVector128(q + bitJump);
-                var vr1 = AdvSimd.Add(vp1, vq1);
+                var vr1 = AdvSimd.Multiply(vp1, vq1);
                 AdvSimd.Store(p + bitJump, vr1);
                 
                 var vp2 = AdvSimd.LoadVector128(p + 2 * bitJump);
                 var vq2 = AdvSimd.LoadVector128(q + 2 * bitJump);
-                var vr2 = AdvSimd.Add(vp2, vq2);
+                var vr2 = AdvSimd.Multiply(vp2, vq2);
                 AdvSimd.Store(p + 2 * bitJump, vr2);
                 
                 var vp3 = AdvSimd.LoadVector128(p + 3 * bitJump);
                 var vq3 = AdvSimd.LoadVector128(q + 3 * bitJump);
-                var vr3 = AdvSimd.Add(vp3, vq3);
+                var vr3 = AdvSimd.Multiply(vp3, vq3);
                 AdvSimd.Store(p + 3 * bitJump, vr3);
 
                 p += jump;
@@ -681,7 +681,7 @@ internal static class MatAddOperations
             lineEnd += jump;
             do
             {
-                *p += *q;
+                *p *= *q;
                 p++;
                 q++;
             } while (p < lineEnd);
@@ -691,7 +691,7 @@ internal static class MatAddOperations
         }
     }
 
-    private static unsafe void parallelSum(
+    private static unsafe void parallelMul(
         float* p, float* q, 
         int n, int m
     )
@@ -712,7 +712,7 @@ internal static class MatAddOperations
             int pi = i * subN;
             int pj = j * subM;
 
-            iterativeSum(
+            iterativeMul(
                 p, q,
                 pi, pj, pi, pj,
                 subN, subM, n, m
@@ -720,7 +720,7 @@ internal static class MatAddOperations
         });
     }
 
-    private static unsafe void parallelSum(
+    private static unsafe void parallelMul(
         float* p, float* q,
         int pi, int pj,
         int qi, int qj,
@@ -746,7 +746,7 @@ internal static class MatAddOperations
             int stqi = qi + i * subN;
             int stqj = qj + j * subM;
 
-            iterativeSum(
+            iterativeMul(
                 p, q,
                 stpi, stpj, stqi, stqj, 
                 subN, subM, n, m
