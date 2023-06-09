@@ -5,7 +5,7 @@ using System.Runtime.Intrinsics.Arm;
 
 namespace Algebric.Internal;
 
-internal static class MatOperations
+internal static class MatAddOperations
 {
     private const int splitThreshold = 128;
 
@@ -66,7 +66,7 @@ internal static class MatOperations
     internal static unsafe void iterativeSum(float* p, float* q,int n, int m)
     {
         if (AdvSimd.IsSupported)
-            strQidSum(p, q, n, m);
+            simdSum(p, q, n, m);
         else if (Sse42.IsSupported)
             sse42Sum(p, q, n, m);
         else if (Sse41.IsSupported)
@@ -79,14 +79,14 @@ internal static class MatOperations
             slowSum(p, q, n, m);
     }
 
-    private static unsafe void strQidSum(float* p, float* q, int n, int m)
+    private static unsafe void simdSum(float* p, float* q, int n, int m)
     {
         const long bitjump = 4;
         const long jump = 16;
         long len = n * m - jump;
         float* end = p + len;
 
-        for (; p < end; p += jump, q += jump)
+        do
         {
             var pv0 = AdvSimd.LoadVector128(p);
             var qv0 = AdvSimd.LoadVector128(q);
@@ -107,11 +107,15 @@ internal static class MatOperations
             var qv3 = AdvSimd.LoadVector128(q + 3 * bitjump);
             var rv3 = AdvSimd.Add(pv3, qv3);
             AdvSimd.Store(p + 3 * bitjump, rv3);
-        }
+        } while (p < end);
 
         end += jump;
-        for (; p < end; p++, q++)
+        do
+        {
             *p += *q;
+            p++;
+            q++;
+        } while (p < end);
     }
 
     private static unsafe void sse42Sum(float* p, float* q, int n, int m)
@@ -121,7 +125,7 @@ internal static class MatOperations
         long len = n * m - jump;
         float* end = p + len;
 
-        for (; p < end; p += jump, q += jump)
+        do
         {
             var pv0 = Sse42.LoadVector128(p);
             var qv0 = Sse42.LoadVector128(q);
@@ -142,11 +146,15 @@ internal static class MatOperations
             var qv3 = Sse42.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse42.Add(pv3, qv3);
             Sse42.Store(p + 3 * bitjump, rv3);
-        }
+        } while (p < end);
 
         end += jump;
-        for (; p < end; p++, q++)
+        do
+        {
             *p += *q;
+            p++;
+            q++;
+        } while (p < end);
     }
 
     private static unsafe void sse41Sum(float* p, float* q, int n, int m)
@@ -156,7 +164,7 @@ internal static class MatOperations
         long len = n * m - jump;
         float* end = p + len;
 
-        for (; p < end; p += jump, q += jump)
+        do
         {
             var pv0 = Sse41.LoadVector128(p);
             var qv0 = Sse41.LoadVector128(q);
@@ -177,11 +185,15 @@ internal static class MatOperations
             var qv3 = Sse41.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse41.Add(pv3, qv3);
             Sse41.Store(p + 3 * bitjump, rv3);
-        }
+        } while (p < end);
 
         end += jump;
-        for (; p < end; p++, q++)
+        do
+        {
             *p += *q;
+            p++;
+            q++;
+        } while (p < end);
     }
 
     private static unsafe void avxSum(float* p, float* q, int n, int m)
@@ -191,7 +203,7 @@ internal static class MatOperations
         long len = n * m - jump;
         float* end = p + len;
 
-        for (; p < end; p += jump, q += jump)
+        do
         {
             var pv0 = Avx2.LoadVector128(p);
             var qv0 = Avx2.LoadVector128(q);
@@ -212,11 +224,15 @@ internal static class MatOperations
             var qv3 = Avx2.LoadVector128(q + 3 * bitjump);
             var rv3 = Avx2.Add(pv3, qv3);
             Avx2.Store(p + 3 * bitjump, rv3);
-        }
+        } while (p < end);
 
         end += jump;
-        for (; p < end; p++, q++)
+        do
+        {
             *p += *q;
+            p++;
+            q++;
+        } while (p < end);
     }
 
     private static unsafe void sse3Sum(float* p, float* q, int n, int m)
@@ -226,7 +242,7 @@ internal static class MatOperations
         long len = n * m - jump;
         float* end = p + len;
 
-        for (; p < end; p += jump, q += jump)
+        do
         {
             var pv0 = Sse3.LoadVector128(p);
             var qv0 = Sse3.LoadVector128(q);
@@ -247,11 +263,17 @@ internal static class MatOperations
             var qv3 = Sse3.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse3.Add(pv3, qv3);
             Sse3.Store(p + 3 * bitjump, rv3);
-        }
+            p += jump;
+            q += jump;
+        } while (p < end);
 
         end += jump;
-        for (; p < end; p++, q++)
+        do
+        {
             *p += *q;
+            p++;
+            q++;
+        } while (p < end);
     }
 
     internal static unsafe void slowSum(
@@ -263,7 +285,7 @@ internal static class MatOperations
         long len = n * m - jump;
         float* end = p + len;
 
-        for (; p < end; p += jump, q += jump)
+        do
         {
             *(p + 0) += *(q + 0);
             *(p + 1) += *(q + 1);
@@ -273,11 +295,17 @@ internal static class MatOperations
             *(p + 5) += *(q + 5);
             *(p + 6) += *(q + 6);
             *(p + 7) += *(q + 7);
-        }
+            p += jump;
+            q += jump;
+        } while (p < end);
 
         end += jump;
-        for (; p < end; p++, q++)
+        do
+        {
             *p += *q;
+            p++;
+            q++;
+        } while (p < end);
     }
 
     internal static unsafe void iterativeSum(
@@ -289,7 +317,7 @@ internal static class MatOperations
     )
     {
         if (AdvSimd.IsSupported)
-            strQidSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
+            simdSum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else if (Sse42.IsSupported)
             sse42Sum(p, q, pi, pj, qi, qj, n, m, strP, strQ);
         else if (Sse41.IsSupported)
@@ -312,52 +340,301 @@ internal static class MatOperations
     {
         p += pj * strP + pi;
         q += qj * strQ + qj;
+        strP -= n;
+        strQ -= n;
 
+        const long jump = 4;
+        float* lineEnd = null;
 
-        const long jump = 8;
-        long len = n * m - jump;
-        float* end = p + len;
-
-        for (; p < end; p += jump, q += jump)
+        for (int j = 0; j < m; j++)
         {
-            *(p + 0) += *(q + 0);
-            *(p + 1) += *(q + 1);
-            *(p + 2) += *(q + 2);
-            *(p + 3) += *(q + 3);
-            *(p + 4) += *(q + 4);
-            *(p + 5) += *(q + 5);
-            *(p + 6) += *(q + 6);
-            *(p + 7) += *(q + 7);
-            p += jump;
-        }
+            lineEnd = p + n - jump;
+            do
+            {
+                *(p + 0) += *(q + 0);
+                *(p + 1) += *(q + 1);
+                *(p + 2) += *(q + 2);
+                *(p + 3) += *(q + 3);
+                p += jump;
+                q += jump;
+            } while (p < lineEnd);
 
-        for (; p < end; p++, q++)
-            *p += *q;
+            lineEnd += jump;
+            do
+            {
+                *p += *q;
+                p++;
+                q++;
+            } while (p < lineEnd);
+
+            p += strP;
+            q += strQ;
+        }
     }
 
     private static unsafe void sse3Sum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
     {
-        throw new NotImplementedException();
+        p += pj * strP + pi;
+        q += qj * strQ + qj;
+        strP -= n;
+        strQ -= n;
+
+        const long jump = 16;
+        const long bitJump = 4;
+        float* lineEnd = null;
+
+        for (int j = 0; j < m; j++)
+        {
+            lineEnd = p + n - jump;
+            do
+            {
+                var vp0 = Sse3.LoadVector128(p);
+                var vq0 = Sse3.LoadVector128(q);
+                var vr0 = Sse3.Add(vp0, vq0);
+                Sse3.Store(p, vr0);
+                
+                var vp1 = Sse3.LoadVector128(p + bitJump);
+                var vq1 = Sse3.LoadVector128(q + bitJump);
+                var vr1 = Sse3.Add(vp1, vq1);
+                Sse3.Store(p + bitJump, vr1);
+                
+                var vp2 = Sse3.LoadVector128(p + 2 * bitJump);
+                var vq2 = Sse3.LoadVector128(q + 2 * bitJump);
+                var vr2 = Sse3.Add(vp2, vq2);
+                Sse3.Store(p + 2 * bitJump, vr2);
+                
+                var vp3 = Sse3.LoadVector128(p + 3 * bitJump);
+                var vq3 = Sse3.LoadVector128(q + 3 * bitJump);
+                var vr3 = Sse3.Add(vp3, vq3);
+                Sse3.Store(p + 3 * bitJump, vr3);
+
+                p += jump;
+                q += jump;
+            } while (p < lineEnd);
+
+            lineEnd += jump;
+            do
+            {
+                *p += *q;
+                p++;
+                q++;
+            } while (p < lineEnd);
+
+            p += strP;
+            q += strQ;
+        }
     }
 
     private static unsafe void avxSum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
     {
-        throw new NotImplementedException();
+        p += pj * strP + pi;
+        q += qj * strQ + qj;
+        strP -= n;
+        strQ -= n;
+
+        const long jump = 16;
+        const long bitJump = 4;
+        float* lineEnd = null;
+
+        for (int j = 0; j < m; j++)
+        {
+            lineEnd = p + n - jump;
+            do
+            {
+                var vp0 = Avx2.LoadVector128(p);
+                var vq0 = Avx2.LoadVector128(q);
+                var vr0 = Avx2.Add(vp0, vq0);
+                Avx2.Store(p, vr0);
+                
+                var vp1 = Avx2.LoadVector128(p + bitJump);
+                var vq1 = Avx2.LoadVector128(q + bitJump);
+                var vr1 = Avx2.Add(vp1, vq1);
+                Avx2.Store(p + bitJump, vr1);
+                
+                var vp2 = Avx2.LoadVector128(p + 2 * bitJump);
+                var vq2 = Avx2.LoadVector128(q + 2 * bitJump);
+                var vr2 = Avx2.Add(vp2, vq2);
+                Avx2.Store(p + 2 * bitJump, vr2);
+                
+                var vp3 = Avx2.LoadVector128(p + 3 * bitJump);
+                var vq3 = Avx2.LoadVector128(q + 3 * bitJump);
+                var vr3 = Avx2.Add(vp3, vq3);
+                Avx2.Store(p + 3 * bitJump, vr3);
+
+                p += jump;
+                q += jump;
+            } while (p < lineEnd);
+
+            lineEnd += jump;
+            do
+            {
+                *p += *q;
+                p++;
+                q++;
+            } while (p < lineEnd);
+
+            p += strP;
+            q += strQ;
+        }
     }
 
     private static unsafe void sse41Sum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
     {
-        throw new NotImplementedException();
+        p += pj * strP + pi;
+        q += qj * strQ + qj;
+        strP -= n;
+        strQ -= n;
+
+        const long jump = 16;
+        const long bitJump = 4;
+        float* lineEnd = null;
+
+        for (int j = 0; j < m; j++)
+        {
+            lineEnd = p + n - jump;
+            do
+            {
+                var vp0 = Sse41.LoadVector128(p);
+                var vq0 = Sse41.LoadVector128(q);
+                var vr0 = Sse41.Add(vp0, vq0);
+                Sse41.Store(p, vr0);
+                
+                var vp1 = Sse41.LoadVector128(p + bitJump);
+                var vq1 = Sse41.LoadVector128(q + bitJump);
+                var vr1 = Sse41.Add(vp1, vq1);
+                Sse41.Store(p + bitJump, vr1);
+                
+                var vp2 = Sse41.LoadVector128(p + 2 * bitJump);
+                var vq2 = Sse41.LoadVector128(q + 2 * bitJump);
+                var vr2 = Sse41.Add(vp2, vq2);
+                Sse41.Store(p + 2 * bitJump, vr2);
+                
+                var vp3 = Sse41.LoadVector128(p + 3 * bitJump);
+                var vq3 = Sse41.LoadVector128(q + 3 * bitJump);
+                var vr3 = Sse41.Add(vp3, vq3);
+                Sse41.Store(p + 3 * bitJump, vr3);
+
+                p += jump;
+                q += jump;
+            } while (p < lineEnd);
+
+            lineEnd += jump;
+            do
+            {
+                *p += *q;
+                p++;
+                q++;
+            } while (p < lineEnd);
+
+            p += strP;
+            q += strQ;
+        }
     }
 
     private static unsafe void sse42Sum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
     {
-        throw new NotImplementedException();
+        p += pj * strP + pi;
+        q += qj * strQ + qj;
+        strP -= n;
+        strQ -= n;
+
+        const long jump = 16;
+        const long bitJump = 4;
+        float* lineEnd = null;
+
+        for (int j = 0; j < m; j++)
+        {
+            lineEnd = p + n - jump;
+            do
+            {
+                var vp0 = Sse42.LoadVector128(p);
+                var vq0 = Sse42.LoadVector128(q);
+                var vr0 = Sse42.Add(vp0, vq0);
+                Sse42.Store(p, vr0);
+                
+                var vp1 = Sse42.LoadVector128(p + bitJump);
+                var vq1 = Sse42.LoadVector128(q + bitJump);
+                var vr1 = Sse42.Add(vp1, vq1);
+                Sse42.Store(p + bitJump, vr1);
+                
+                var vp2 = Sse42.LoadVector128(p + 2 * bitJump);
+                var vq2 = Sse42.LoadVector128(q + 2 * bitJump);
+                var vr2 = Sse42.Add(vp2, vq2);
+                Sse42.Store(p + 2 * bitJump, vr2);
+                
+                var vp3 = Sse42.LoadVector128(p + 3 * bitJump);
+                var vq3 = Sse42.LoadVector128(q + 3 * bitJump);
+                var vr3 = Sse42.Add(vp3, vq3);
+                Sse42.Store(p + 3 * bitJump, vr3);
+
+                p += jump;
+                q += jump;
+            } while (p < lineEnd);
+
+            lineEnd += jump;
+            do
+            {
+                *p += *q;
+                p++;
+                q++;
+            } while (p < lineEnd);
+
+            p += strP;
+            q += strQ;
+        }
     }
 
-    private static unsafe void strQidSum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
+    private static unsafe void simdSum(float* p, float* q, int pi, int pj, int qi, int qj, int n, int m, int strP, int strQ)
     {
-        throw new NotImplementedException();
+        p += pj * strP + pi;
+        q += qj * strQ + qj;
+        strP -= n;
+        strQ -= n;
+
+        const long jump = 16;
+        const long bitJump = 4;
+        float* lineEnd = null;
+
+        for (int j = 0; j < m; j++)
+        {
+            lineEnd = p + n - jump;
+            do
+            {
+                var vp0 = AdvSimd.LoadVector128(p);
+                var vq0 = AdvSimd.LoadVector128(q);
+                var vr0 = AdvSimd.Add(vp0, vq0);
+                AdvSimd.Store(p, vr0);
+                
+                var vp1 = AdvSimd.LoadVector128(p + bitJump);
+                var vq1 = AdvSimd.LoadVector128(q + bitJump);
+                var vr1 = AdvSimd.Add(vp1, vq1);
+                AdvSimd.Store(p + bitJump, vr1);
+                
+                var vp2 = AdvSimd.LoadVector128(p + 2 * bitJump);
+                var vq2 = AdvSimd.LoadVector128(q + 2 * bitJump);
+                var vr2 = AdvSimd.Add(vp2, vq2);
+                AdvSimd.Store(p + 2 * bitJump, vr2);
+                
+                var vp3 = AdvSimd.LoadVector128(p + 3 * bitJump);
+                var vq3 = AdvSimd.LoadVector128(q + 3 * bitJump);
+                var vr3 = AdvSimd.Add(vp3, vq3);
+                AdvSimd.Store(p + 3 * bitJump, vr3);
+
+                p += jump;
+                q += jump;
+            } while (p < lineEnd);
+
+            lineEnd += jump;
+            do
+            {
+                *p += *q;
+                p++;
+                q++;
+            } while (p < lineEnd);
+
+            p += strP;
+            q += strQ;
+        }
     }
 
     internal static unsafe void parallelSum(
