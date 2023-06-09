@@ -119,6 +119,9 @@ internal static class MatMulOperations
             var qv3 = AdvSimd.LoadVector128(q + 3 * bitjump);
             var rv3 = AdvSimd.Multiply(pv3, qv3);
             AdvSimd.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -161,6 +164,9 @@ internal static class MatMulOperations
             var qv3 = Sse42.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse42.Multiply(pv3, qv3);
             Sse42.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -203,6 +209,9 @@ internal static class MatMulOperations
             var qv3 = Sse41.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse41.Multiply(pv3, qv3);
             Sse41.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -245,6 +254,9 @@ internal static class MatMulOperations
             var qv3 = Avx2.LoadVector128(q + 3 * bitjump);
             var rv3 = Avx2.Multiply(pv3, qv3);
             Avx2.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -287,6 +299,7 @@ internal static class MatMulOperations
             var qv3 = Sse3.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse3.Multiply(pv3, qv3);
             Sse3.Store(p + 3 * bitjump, rv3);
+
             p += jump;
             q += jump;
         } while (p < end);
@@ -379,6 +392,7 @@ internal static class MatMulOperations
                 *(p + 1) *= *(q + 1);
                 *(p + 2) *= *(q + 2);
                 *(p + 3) *= *(q + 3);
+                
                 p += jump;
                 q += jump;
             } while (p < lineEnd);

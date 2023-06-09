@@ -20,6 +20,6 @@ using var C = Mat.Create(5, 5,
     2, 2, 3, 4, 5
 );
 
-B.Add(A);
+B.Multiply(B);
 
 Console.WriteLine(B);

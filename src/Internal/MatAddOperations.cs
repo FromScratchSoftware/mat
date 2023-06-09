@@ -119,6 +119,9 @@ internal static class MatAddOperations
             var qv3 = AdvSimd.LoadVector128(q + 3 * bitjump);
             var rv3 = AdvSimd.Add(pv3, qv3);
             AdvSimd.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -161,6 +164,9 @@ internal static class MatAddOperations
             var qv3 = Sse42.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse42.Add(pv3, qv3);
             Sse42.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -203,6 +209,9 @@ internal static class MatAddOperations
             var qv3 = Sse41.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse41.Add(pv3, qv3);
             Sse41.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -245,6 +254,9 @@ internal static class MatAddOperations
             var qv3 = Avx2.LoadVector128(q + 3 * bitjump);
             var rv3 = Avx2.Add(pv3, qv3);
             Avx2.Store(p + 3 * bitjump, rv3);
+
+            p += jump;
+            q += jump;
         } while (p < end);
 
         end += jump;
@@ -287,6 +299,7 @@ internal static class MatAddOperations
             var qv3 = Sse3.LoadVector128(q + 3 * bitjump);
             var rv3 = Sse3.Add(pv3, qv3);
             Sse3.Store(p + 3 * bitjump, rv3);
+
             p += jump;
             q += jump;
         } while (p < end);
@@ -319,6 +332,7 @@ internal static class MatAddOperations
             *(p + 5) += *(q + 5);
             *(p + 6) += *(q + 6);
             *(p + 7) += *(q + 7);
+
             p += jump;
             q += jump;
         } while (p < end);
@@ -379,6 +393,7 @@ internal static class MatAddOperations
                 *(p + 1) += *(q + 1);
                 *(p + 2) += *(q + 2);
                 *(p + 3) += *(q + 3);
+
                 p += jump;
                 q += jump;
             } while (p < lineEnd);
@@ -387,6 +402,7 @@ internal static class MatAddOperations
             do
             {
                 *p += *q;
+                
                 p++;
                 q++;
             } while (p < lineEnd);
