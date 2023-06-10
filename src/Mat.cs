@@ -86,6 +86,13 @@ public unsafe class Mat : IDisposable
         }
     }
 
+    public unsafe Mat Clone()
+    {
+        var newMat = Zeros(this.n, this.m);
+        MatCopyOperations.Copy(newMat.data, this.data, this.n, this.m);
+        return newMat;
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder();
