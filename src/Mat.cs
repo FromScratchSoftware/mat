@@ -6,11 +6,15 @@ namespace Algebric;
 
 using Internal;
 
-public unsafe class Mat : IDisposable
+public unsafe class Mat : IMat, IDisposable
 {
     private int n;
     private int m;
     private float* data;
+
+    public int N => this.n;
+
+    public int M => this.m;
 
     private Mat(int n, int m)
     {
@@ -35,16 +39,17 @@ public unsafe class Mat : IDisposable
         Marshal.Copy(data, 0, (nint)this.data, len);
     }
 
-    public unsafe void Add(Mat A)
+    public void Add(IMat A)
     {
-        if (this.n != A.n || this.m != A.m)
+        if (this.n != A.N || this.m != A.M)
             throw new InvalidOperationException(
                 "The mat objects have different sizes."
             );
         
         try
         {
-            MatAddOperations.Sum(this.data, A.data, n, m);
+            var mat = A.ToMat();
+            MatAddOperations.Sum(this.data, mat.data, n, m);
         }
         catch (Exception e)
         {
@@ -52,16 +57,17 @@ public unsafe class Mat : IDisposable
         }
     }
 
-    public unsafe void Subtract(Mat A)
+    public void Subtract(IMat A)
     {
-        if (this.n != A.n || this.m != A.m)
+        if (this.n != A.N || this.m != A.M)
             throw new InvalidOperationException(
                 "The mat objects have different sizes."
             );
         
         try
         {
-            MatSubOperations.Sub(this.data, A.data, n, m);
+            var mat = A.ToMat();
+            MatSubOperations.Sub(this.data, mat.data, n, m);
         }
         catch (Exception e)
         {
@@ -69,16 +75,17 @@ public unsafe class Mat : IDisposable
         }
     }
 
-    public unsafe void Multiply(Mat A)
+    public void Multiply(IMat A)
     {
-        if (this.n != A.n || this.m != A.m)
+        if (this.n != A.N || this.m != A.M)
             throw new InvalidOperationException(
                 "The mat objects have different sizes."
             );
         
         try
         {
-            MatMulOperations.Mul(this.data, A.data, n, m);
+            var mat = A.ToMat();
+            MatMulOperations.Mul(this.data, mat.data, n, m);
         }
         catch (Exception e)
         {
@@ -86,12 +93,25 @@ public unsafe class Mat : IDisposable
         }
     }
 
-    public unsafe Mat Clone()
+    public void Multiply(float scalar)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Product(IMat A)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IMat Clone()
     {
         var newMat = Zeros(this.n, this.m);
         MatCopyOperations.Copy(newMat.data, this.data, this.n, this.m);
         return newMat;
     }
+    
+    public Mat ToMat()
+        => this;
 
     public override string ToString()
     {
