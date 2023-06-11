@@ -2,9 +2,10 @@
 
 ## Create Mat
 
-Mat needed disposed because use unmanaged data. So is recommended the use of using keyword in declarations.
+Mat needed disposed because use unmanaged data. 
+So is recommended the use of using keyword in declarations.
 
-´´´cs
+```cs
 using Scratch.Mathematics.Mat; 
 
 using var A = Mat.Create(5, 5, // Create a 5x5 mat with the values below
@@ -16,4 +17,4 @@ using var A = Mat.Create(5, 5, // Create a 5x5 mat with the values below
 );
 
 using var B = Mat.Zeros(5, 5); // Create a 5x5 mat with zero in all positions
-´´´
+```
