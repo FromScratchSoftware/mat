@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Scratch.Mat;
+using Scratch.Mathematics.Mat;
 
 using var A = Mat.Zeros(5, 5);
 
@@ -22,4 +22,4 @@ using var C = Mat.Create(5, 5,
 
 var D = 4 * B;
 
-Console.WriteLine(B);
+Console.WriteLine(D);
