@@ -1,6 +1,8 @@
+using System;
+
 namespace Algebric;
 
-public interface IMat
+public interface IMat : IDisposable
 {
     int N { get; }
     int M { get; }
@@ -12,6 +14,7 @@ public interface IMat
     void Multiply(IMat A);
     void Multiply(float scalar);
     void Product(IMat A);
+    void Copy(IMat A);
 
     static IMat operator +(IMat A, IMat B)
     {

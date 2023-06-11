@@ -6,7 +6,7 @@ namespace Algebric;
 
 using Internal;
 
-public unsafe class Mat : IMat, IDisposable
+public unsafe class Mat : IMat
 {
     private int n;
     private int m;
@@ -95,7 +95,14 @@ public unsafe class Mat : IMat, IDisposable
 
     public void Multiply(float scalar)
     {
-        throw new NotImplementedException();
+        try
+        {
+            MatScalarMulOperations.Mul(this.data, scalar, n, m);
+        }
+        catch (Exception e)
+        {
+            throw new SystemException(e.Message);
+        }
     }
 
     public void Product(IMat A)
@@ -103,10 +110,28 @@ public unsafe class Mat : IMat, IDisposable
         throw new NotImplementedException();
     }
 
+    public void Copy(IMat A)
+    {
+        if (this.n != A.N || this.m != A.M)
+            throw new InvalidOperationException(
+                "The mat objects have different sizes."
+            );
+        
+        try
+        {
+            var mat = A.ToMat();
+            MatCopyOperations.Copy(mat.data, this.data, this.n, this.m);
+        }
+        catch (Exception e)
+        {
+            throw new SystemException(e.Message);
+        }
+    }
+
     public IMat Clone()
     {
         var newMat = Zeros(this.n, this.m);
-        MatCopyOperations.Copy(newMat.data, this.data, this.n, this.m);
+        newMat.Copy(this);
         return newMat;
     }
     
@@ -168,9 +193,9 @@ public unsafe class Mat : IMat, IDisposable
         Marshal.FreeHGlobal(dataPointer);
     }
 
-    public static Mat Zeros(int n, int m)
+    public static IMat Zeros(int n, int m)
         => new Mat(n, m);
         
-    public static Mat Create(int n, int m, params float[] data)
+    public static IMat Create(int n, int m, params float[] data)
         => new Mat(n, m, data);
 }
