@@ -4,7 +4,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.InteropServices;
 
-namespace Algebric.Internal;
+namespace Scratch.Mat.Internal;
 
 internal static class MatCopyOperations
 {

@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics.Arm;
 
-namespace Algebric.Internal;
+namespace Scratch.Mat.Internal;
 
 // TODO: Improve this operation with paralelization
 internal static class MatScalarMulOperations

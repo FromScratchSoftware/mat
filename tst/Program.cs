@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Algebric;
+using Scratch.Mat;
 
 using var A = Mat.Zeros(5, 5);
 
