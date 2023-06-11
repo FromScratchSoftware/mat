@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\src.csproj" />
+    <ProjectReference Include="..\src\Scratch.Mathematics.Mat.csproj" />
   </ItemGroup>
 
 </Project>
