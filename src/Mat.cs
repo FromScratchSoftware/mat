@@ -125,6 +125,11 @@ public unsafe class Mat : IMat, IEnumerable<float>
         }
     }
 
+    public bool Compare(IMat A)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Product(IMat A)
     {
         throw new NotImplementedException();

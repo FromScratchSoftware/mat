@@ -16,6 +16,11 @@ public abstract class LazyMat : IMat
         throw new System.NotImplementedException();
     }
 
+    public bool Compare(IMat A)
+    {
+        throw new System.NotImplementedException();
+    }
+
     public void Copy(IMat A)
     {
         throw new System.NotImplementedException();

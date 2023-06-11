@@ -15,6 +15,7 @@ public interface IMat : IDisposable
     void Multiply(float scalar);
     void Product(IMat A);
     void Copy(IMat A);
+    bool Compare(IMat A);
 
     static IMat operator +(IMat A, IMat B)
     {
