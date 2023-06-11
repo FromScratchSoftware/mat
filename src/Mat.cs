@@ -120,7 +120,7 @@ public unsafe class Mat : IMat
         try
         {
             var mat = A.ToMat();
-            MatCopyOperations.Copy(mat.data, this.data, this.n, this.m);
+            MatCopyOperations.Copy(this.data, mat.data, this.n, this.m);
         }
         catch (Exception e)
         {

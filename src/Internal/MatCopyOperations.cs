@@ -43,7 +43,7 @@ internal static class MatCopyOperations
         end += jump;
         do
         {
-            *source = *target;
+            *target = *source;
 
             source++;
             target++;
@@ -84,7 +84,7 @@ internal static class MatCopyOperations
             end += jump;
             do
             {
-                *st = *tg;
+                *tg = *st;
 
                 st++;
                 tg++;

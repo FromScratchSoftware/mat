@@ -89,15 +89,13 @@ internal static class MatScalarMulOperations
                 AdvSimd.Store(p + 3 * bitjump, rv3);
 
                 p += jump;
-                q += jump;
             } while (p < end);
 
             end += jump;
             do
             {
-                *p *= *q;
+                *p *= scalar;
                 p++;
-                q++;
             } while (p < end);
         }
     }
@@ -118,38 +116,33 @@ internal static class MatScalarMulOperations
         fixed (float* scalarPtr = scalarArr)
         {
             float* q = scalarPtr;
+            var qv = Sse42.LoadVector128(q);
             do
             {
                 var pv0 = Sse42.LoadVector128(p);
-                var qv0 = Sse42.LoadVector128(q);
-                var rv0 = Sse42.Multiply(pv0, qv0);
+                var rv0 = Sse42.Multiply(pv0, qv);
                 Sse42.Store(p, rv0);
 
                 var pv1 = Sse42.LoadVector128(p + bitjump);
-                var qv1 = Sse42.LoadVector128(q + bitjump);
-                var rv1 = Sse42.Multiply(pv1, qv1);
+                var rv1 = Sse42.Multiply(pv1, qv);
                 Sse42.Store(p + bitjump, rv1);
 
                 var pv2 = Sse42.LoadVector128(p + 2 * bitjump);
-                var qv2 = Sse42.LoadVector128(q + 2 * bitjump);
-                var rv2 = Sse42.Multiply(pv2, qv2);
+                var rv2 = Sse42.Multiply(pv2, qv);
                 Sse42.Store(p + 2 * bitjump, rv2);
 
                 var pv3 = Sse42.LoadVector128(p + 3 * bitjump);
-                var qv3 = Sse42.LoadVector128(q + 3 * bitjump);
-                var rv3 = Sse42.Multiply(pv3, qv3);
+                var rv3 = Sse42.Multiply(pv3, qv);
                 Sse42.Store(p + 3 * bitjump, rv3);
 
                 p += jump;
-                q += jump;
             } while (p < end);
 
             end += jump;
             do
             {
-                *p *= *q;
+                *p *= scalar;
                 p++;
-                q++;
             } while (p < end);
         }
     }
@@ -170,38 +163,33 @@ internal static class MatScalarMulOperations
         fixed (float* scalarPtr = scalarArr)
         {
             float* q = scalarPtr;
+            var qv = Sse41.LoadVector128(q);
             do
             {
                 var pv0 = Sse41.LoadVector128(p);
-                var qv0 = Sse41.LoadVector128(q);
-                var rv0 = Sse41.Multiply(pv0, qv0);
+                var rv0 = Sse41.Multiply(pv0, qv);
                 Sse41.Store(p, rv0);
 
                 var pv1 = Sse41.LoadVector128(p + bitjump);
-                var qv1 = Sse41.LoadVector128(q + bitjump);
-                var rv1 = Sse41.Multiply(pv1, qv1);
+                var rv1 = Sse41.Multiply(pv1, qv);
                 Sse41.Store(p + bitjump, rv1);
 
                 var pv2 = Sse41.LoadVector128(p + 2 * bitjump);
-                var qv2 = Sse41.LoadVector128(q + 2 * bitjump);
-                var rv2 = Sse41.Multiply(pv2, qv2);
+                var rv2 = Sse41.Multiply(pv2, qv);
                 Sse41.Store(p + 2 * bitjump, rv2);
 
                 var pv3 = Sse41.LoadVector128(p + 3 * bitjump);
-                var qv3 = Sse41.LoadVector128(q + 3 * bitjump);
-                var rv3 = Sse41.Multiply(pv3, qv3);
+                var rv3 = Sse41.Multiply(pv3, qv);
                 Sse41.Store(p + 3 * bitjump, rv3);
 
                 p += jump;
-                q += jump;
             } while (p < end);
 
             end += jump;
             do
             {
-                *p *= *q;
+                *p *= scalar;
                 p++;
-                q++;
             } while (p < end);
         }
     }
@@ -223,38 +211,33 @@ internal static class MatScalarMulOperations
         fixed (float* scalarPtr = scalarArr)
         {
             float* q = scalarPtr;
+            var qv = Avx.LoadVector128(q);
             do
             {
-                var pv0 = Avx2.LoadVector128(p);
-                var qv0 = Avx2.LoadVector128(q);
-                var rv0 = Avx2.Multiply(pv0, qv0);
-                Avx2.Store(p, rv0);
+                var pv0 = Avx.LoadVector128(p);
+                var rv0 = Avx.Multiply(pv0, qv);
+                Avx.Store(p, rv0);
 
-                var pv1 = Avx2.LoadVector128(p + bitjump);
-                var qv1 = Avx2.LoadVector128(q + bitjump);
-                var rv1 = Avx2.Multiply(pv1, qv1);
-                Avx2.Store(p + bitjump, rv1);
+                var pv1 = Avx.LoadVector128(p + bitjump);
+                var rv1 = Avx.Multiply(pv1, qv);
+                Avx.Store(p + bitjump, rv1);
 
-                var pv2 = Avx2.LoadVector128(p + 2 * bitjump);
-                var qv2 = Avx2.LoadVector128(q + 2 * bitjump);
-                var rv2 = Avx2.Multiply(pv2, qv2);
-                Avx2.Store(p + 2 * bitjump, rv2);
+                var pv2 = Avx.LoadVector128(p + 2 * bitjump);
+                var rv2 = Avx.Multiply(pv2, qv);
+                Avx.Store(p + 2 * bitjump, rv2);
 
-                var pv3 = Avx2.LoadVector128(p + 3 * bitjump);
-                var qv3 = Avx2.LoadVector128(q + 3 * bitjump);
-                var rv3 = Avx2.Multiply(pv3, qv3);
-                Avx2.Store(p + 3 * bitjump, rv3);
+                var pv3 = Avx.LoadVector128(p + 3 * bitjump);
+                var rv3 = Avx.Multiply(pv3, qv);
+                Avx.Store(p + 3 * bitjump, rv3);
 
                 p += jump;
-                q += jump;
             } while (p < end);
 
             end += jump;
             do
             {
-                *p *= *q;
+                *p *= scalar;
                 p++;
-                q++;
             } while (p < end);
         }
     }
@@ -275,38 +258,33 @@ internal static class MatScalarMulOperations
         fixed (float* scalarPtr = scalarArr)
         {
             float* q = scalarPtr;
+            var qv = Sse3.LoadVector128(q);
             do
             {
                 var pv0 = Sse3.LoadVector128(p);
-                var qv0 = Sse3.LoadVector128(q);
-                var rv0 = Sse3.Multiply(pv0, qv0);
+                var rv0 = Sse3.Multiply(pv0, qv);
                 Sse3.Store(p, rv0);
 
                 var pv1 = Sse3.LoadVector128(p + bitjump);
-                var qv1 = Sse3.LoadVector128(q + bitjump);
-                var rv1 = Sse3.Multiply(pv1, qv1);
+                var rv1 = Sse3.Multiply(pv1, qv);
                 Sse3.Store(p + bitjump, rv1);
 
                 var pv2 = Sse3.LoadVector128(p + 2 * bitjump);
-                var qv2 = Sse3.LoadVector128(q + 2 * bitjump);
-                var rv2 = Sse3.Multiply(pv2, qv2);
+                var rv2 = Sse3.Multiply(pv2, qv);
                 Sse3.Store(p + 2 * bitjump, rv2);
 
                 var pv3 = Sse3.LoadVector128(p + 3 * bitjump);
-                var qv3 = Sse3.LoadVector128(q + 3 * bitjump);
-                var rv3 = Sse3.Multiply(pv3, qv3);
+                var rv3 = Sse3.Multiply(pv3, qv);
                 Sse3.Store(p + 3 * bitjump, rv3);
 
                 p += jump;
-                q += jump;
             } while (p < end);
 
             end += jump;
             do
             {
-                *p *= *q;
+                *p *= scalar;
                 p++;
-                q++;
             } while (p < end);
         }
     }
