@@ -1,4 +1,4 @@
-namespace Scratch.Mat.Internal;
+namespace Scratch.Mathematics.Mat.Internal;
 
 internal class Strassen
 {

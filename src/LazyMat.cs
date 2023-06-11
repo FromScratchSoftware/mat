@@ -1,4 +1,4 @@
-namespace Scratch.Mat;
+namespace Scratch.Mathematics.Mat;
 
 public abstract class LazyMat : IMat
 {

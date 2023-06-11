@@ -1,6 +1,6 @@
 using System;
 
-namespace Scratch.Mat;
+namespace Scratch.Mathematics.Mat;
 
 public interface IMat : IDisposable
 {

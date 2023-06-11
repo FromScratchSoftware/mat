@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics.Arm;
 
-namespace Scratch.Mat.Internal;
+namespace Scratch.Mathematics.Mat.Internal;
 
 internal static class MatSubOperations
 {

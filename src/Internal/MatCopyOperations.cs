@@ -1,10 +1,6 @@
-using System;
 using System.Threading.Tasks;
-using System.Runtime.Intrinsics.X86;
-using System.Runtime.Intrinsics.Arm;
-using System.Runtime.InteropServices;
 
-namespace Scratch.Mat.Internal;
+namespace Scratch.Mathematics.Mat.Internal;
 
 internal static class MatCopyOperations
 {
