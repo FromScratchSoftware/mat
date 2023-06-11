@@ -1,16 +1,36 @@
 using System;
 using System.Text;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Scratch.Mathematics.Mat;
 
 using Internal;
 
-public unsafe class Mat : IMat
+public unsafe class Mat : IMat, IEnumerable<float>
 {
     private int n;
     private int m;
     private float* data;
+
+    public unsafe float this[int i, int j]
+    {
+        get
+        {
+            if (i < 0 || i >= N || j < 0 || j >= m)
+                throw new IndexOutOfRangeException();
+
+            return this.data[i + j * m];
+        }
+        set
+        {
+            if (i < 0 || i >= N || j < 0 || j >= m)
+                throw new IndexOutOfRangeException();
+
+            this.data[i + j * m] = value;
+        }
+    }
 
     public int N => this.n;
 
@@ -192,6 +212,18 @@ public unsafe class Mat : IMat
         var dataPointer = (nint)this.data;
         Marshal.FreeHGlobal(dataPointer);
     }
+
+    public IEnumerator<float> GetEnumerator()
+    {
+        for (int j = 0; j < m; j++)
+        {
+            for (int i = 0; i < n; i++)
+                yield return this[i, j];
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+        => GetEnumerator();
 
     public static IMat Zeros(int n, int m)
         => new Mat(n, m);
